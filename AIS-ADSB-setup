@@ -1,0 +1,97 @@
+#!/bin/bash
+# full upgrade
+echo ===============================
+echo Doing full system upgrade
+read -t 10 -p "Press CTRL-C to abort ..."
+sudo apt update && sudo apt -y full-upgrade && sudo apt autoremove -y && sudo apt dist-upgrade -y
+
+# [SOURCE] https://github.com/librtlsdr/librtlsdr
+echo ===============================
+echo Installing build-essential, cmake, git, ibusb-dev libusb-1.0-0-dev
+read -t 5 -p "Press CTRL-C to abort ..."
+sudo apt install build-essential cmake git
+sudo apt install libusb-dev libusb-1.0-0-dev
+
+# retrieve sources
+echo ===============================
+echo Retriving librtlsdr.git
+read -t 5 -p "Press CTRL-C to abort ..."
+git clone https://github.com/librtlsdr/librtlsdr.git
+
+# confirm you have the 'master' branch
+echo ===============================
+echo Retriving librtlsdr.git
+read -t 5 -p "Press CTRL-C to abort ..."
+cd librtlsdr
+git status
+git checkout master
+
+# build: run cmake and start compilation of librtlsdr
+echo ===============================
+echo Running cmake and starting compilation of librtlsdr
+read -t 5 -p "Press CTRL-C to abort ..."
+mkdir build && cd build
+cmake ../ -DINSTALL_UDEV_RULES=ON
+make
+
+# install librtlsdr
+echo ===============================
+echo Installing librtlsdr
+read -t 5 -p "Press CTRL-C to abort ..."
+sudo make install
+sudo ldconfig
+
+# [SOURCE] https://github.com/mik3y/airdash/wiki/Running-RTL-AIS-on-Raspberry-Pi
+
+# install dependencies for RTL-AIS
+echo ===============================
+echo Installing dependencies for RTL-AIS
+read -t 5 -p "Press CTRL-C to abort ..."
+sudo apt install git librtlsdr-dev librtlsdr build-essential
+
+# fetch code
+echo ===============================
+echo Fetching RTL-AIS code
+read -t 5 -p "Press CTRL-C to abort ..."
+git clone https://github.com/dgiardini/rtl-ais
+
+# compile the code
+echo ===============================
+echo Installing RTL-AIS
+read -t 5 -p "Press CTRL-C to abort ..."
+cd rtl-ais
+make
+
+# check for success
+echo ===============================
+echo If successful, you should see something like this:
+echo $ ./rtl_ais
+echo ./rtl_ais: invalid option -- '-'
+echo rtl_ais, a simple AIS tuner
+echo and generic dual-frequency FM demodulator
+echo ---------------------
+./rtl_ais --help
+echo ---------------------
+read -t 10 -p "Press any key to continue ..."
+echo ===============================
+echo To run rtl_ais for Airdash, enter:
+echo ./rtl_ais -p 0.5 -T   (where "-p 0.5" varies based on your radio)
+echo [for usage, see https://github.com/dgiardini/rtl-ais]
+echo ===============================
+echo ===============================
+echo 
+echo 
+echo ADSB Installation
+echo 
+echo 
+echo 
+read -p "Press Ctrl-C to abort installation of the ADSB feeder"
+# [SOURCE] https://github.com/wiedehopf/adsb-scripts/wiki/Automatic-installation-for-readsb
+sudo bash -c "$(wget -q -O - https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/readsb-install.sh)"
+echo ===============================
+echo Installing ADS-B Exchange feed client
+read -t 5 -p "Press CTRL-C to abort ..."
+wget -O /tmp/axfeed.sh https://raw.githubusercontent.com/adsbxchange/adsb-exchange/master/install.sh
+sudo bash /tmp/axfeed.sh
+echo ===============================
+echo Please reboot
